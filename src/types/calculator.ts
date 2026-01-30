@@ -26,6 +26,7 @@ export interface ScenarioResult {
 export interface DamageScenario {
   id: string;
   name: string;
+  headline: string;
   description: string;
   icon: string;
   baseCostPerSqFt: {
@@ -35,6 +36,7 @@ export interface DamageScenario {
   };
   standardUnitRatio: number; // Percentage of damage to standard unit elements
   commonScenario: string;
+  whoResponsible: 'you' | 'neighbour';
 }
 
 export interface DataSource {
