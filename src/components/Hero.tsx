@@ -15,22 +15,26 @@ export function Hero() {
         </h1>
         
         <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-          Without one, there's no clear answer to <strong>who pays for what</strong> when something goes wrong—leading to disputes, delays, and you potentially paying more than your fair share.
+          When a pipe bursts or a fire happens, <strong>who pays to fix what?</strong> This by-law gives your building a clear answer—so you're not stuck arguing or overpaying.
         </p>
 
-        {/* Quick Impact Numbers */}
-        <div className="grid sm:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-red-600">Unclear</p>
-            <p className="text-sm text-gray-600">Who pays without the by-law?</p>
+        {/* Before/After Comparison */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
+          <div className="bg-red-50 rounded-xl p-5 border border-red-200 text-left">
+            <p className="text-sm font-semibold text-red-700 mb-2">WITHOUT the by-law</p>
+            <ul className="text-sm text-red-800 space-y-1">
+              <li>• No one agrees who pays</li>
+              <li>• Repairs get delayed</li>
+              <li>• You may cover others' upgrades</li>
+            </ul>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-green-600">Defined</p>
-            <p className="text-sm text-gray-600">Clear rules with the by-law</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-primary-600">Fair</p>
-            <p className="text-sm text-gray-600">You only pay for your upgrades</p>
+          <div className="bg-green-50 rounded-xl p-5 border border-green-200 text-left">
+            <p className="text-sm font-semibold text-green-700 mb-2">WITH the by-law</p>
+            <ul className="text-sm text-green-800 space-y-1">
+              <li>• Responsibilities are spelled out</li>
+              <li>• Repairs happen faster</li>
+              <li>• You pay only for your own upgrades</li>
+            </ul>
           </div>
         </div>
 
