@@ -45,6 +45,7 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
               <div className="flex justify-between"><span className="text-gray-600">corporationDeductible</span><span>${inputs.corporationDeductible.toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">ownerInsuranceCoverage</span><span>${inputs.ownerInsuranceCoverage.toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">ownerInsuranceDeductible</span><span>${inputs.ownerInsuranceDeductible.toLocaleString()}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600">ownerInsurancePremium</span><span>${inputs.ownerInsurancePremium}/mo</span></div>
               <div className="flex justify-between"><span className="text-gray-600">numberOfUnits</span><span>{inputs.numberOfUnits}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">incidentsPerYear</span><span>{inputs.incidentsPerYear}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">damageSeverity</span><span>{inputs.damageSeverity}</span></div>
@@ -151,6 +152,41 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
             </div>
           </div>
 
+          {/* HO6 Premium */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">7</span>
+              HO6 Premium Calculation
+            </h3>
+            <div className="bg-green-50 rounded-lg p-3 space-y-3 text-xs font-mono">
+              <p className="text-gray-600 font-sans">// Estimated monthly premium based on coverage level</p>
+              
+              <div className="border-l-2 border-gray-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">Premium Estimate:</p>
+                <p><span className="text-gray-700">estimatedPremium</span> = $25 base + ($4 × coverage ÷ $10,000)</p>
+                <p className="text-gray-500">// Example: $100K coverage → $25 + $40 = $65/mo</p>
+              </div>
+              
+              <div className="border-l-2 border-green-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">WITH By-Law:</p>
+                <p><span className="text-green-600">yearlyPremium</span> = ownerInsurancePremium × 12</p>
+                <p className="text-gray-500">// Owner pays for adequate coverage</p>
+              </div>
+              
+              <div className="border-l-2 border-red-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">WITHOUT By-Law:</p>
+                <p><span className="text-red-600">underinsuredPremium</span> = ownerInsurancePremium × 60%</p>
+                <p><span className="text-red-600">yearlyPremium</span> = underinsuredPremium × 12</p>
+                <p className="text-gray-500">// Owners often underinsure when responsibilities unclear</p>
+              </div>
+              
+              <div className="border-l-2 border-primary-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">Total Yearly Costs:</p>
+                <p><span className="text-primary-600">totalYearlyCost</span> = yearlyFeeImpact + yearlyPremium</p>
+              </div>
+            </div>
+          </div>
+
           {/* Sources */}
           <div className="border-t border-gray-200 pt-4">
             <h3 className="font-semibold text-gray-900 mb-3">Data Sources</h3>
@@ -213,14 +249,19 @@ interface CalculationResult {
     deductibleExceedsDamage: boolean;
     fullyInsured: boolean;
     yearlyFeeImpact: number;
+    yearlyPremium: number;
+    totalYearlyCost: number; // Fee impact + premium
   };
   withoutByLaw: {
     yourCost: number;
     worstCase: number;
     yearlyFeeImpact: number;
+    yearlyPremium: number; // May be lower if underinsured
+    totalYearlyCost: number;
   };
   savings: number;
   yearlyFeeDifference: number;
+  yearlyTotalDifference: number; // Including premiums
 }
 
 function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResult {
@@ -230,10 +271,11 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
       totalDamage: 0,
       standardUnitDamage: 0,
       improvementDamage: 0,
-      withByLaw: { yourCost: 0, corpCovers: 0, yourResponsibility: 0, insurancePays: 0, deductibleExceedsDamage: false, fullyInsured: false, yearlyFeeImpact: 0 },
-      withoutByLaw: { yourCost: 0, worstCase: 0, yearlyFeeImpact: 0 },
+      withByLaw: { yourCost: 0, corpCovers: 0, yourResponsibility: 0, insurancePays: 0, deductibleExceedsDamage: false, fullyInsured: false, yearlyFeeImpact: 0, yearlyPremium: 0, totalYearlyCost: 0 },
+      withoutByLaw: { yourCost: 0, worstCase: 0, yearlyFeeImpact: 0, yearlyPremium: 0, totalYearlyCost: 0 },
       savings: 0,
       yearlyFeeDifference: 0,
+      yearlyTotalDifference: 0,
     };
   }
 
@@ -282,6 +324,17 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   const deductibleExceedsDamage = inputs.corporationDeductible >= standardUnitDamage;
   const fullyInsured = insurancePays >= claimableAmount && claimableAmount > 0;
 
+  // HO6 PREMIUM CALCULATIONS
+  // WITH by-law: owner pays full premium for adequate coverage
+  const yearlyPremiumWith = inputs.ownerInsurancePremium * 12;
+  const totalYearlyCostWith = yearlyFeeImpactWith + yearlyPremiumWith;
+  
+  // WITHOUT by-law: owners often underinsure (50% less coverage typical)
+  // Lower premium but higher risk exposure
+  const underinsuredPremium = Math.round(inputs.ownerInsurancePremium * 0.6); // 40% less premium
+  const yearlyPremiumWithout = underinsuredPremium * 12;
+  const totalYearlyCostWithout = yearlyFeeImpactWithout + yearlyPremiumWithout;
+
   return {
     totalDamage,
     standardUnitDamage,
@@ -294,30 +347,41 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
       deductibleExceedsDamage,
       fullyInsured,
       yearlyFeeImpact: yearlyFeeImpactWith,
+      yearlyPremium: yearlyPremiumWith,
+      totalYearlyCost: totalYearlyCostWith,
     },
     withoutByLaw: {
       yourCost: yourCostWithout,
       worstCase,
       yearlyFeeImpact: yearlyFeeImpactWithout,
+      yearlyPremium: yearlyPremiumWithout,
+      totalYearlyCost: totalYearlyCostWithout,
     },
     savings: yourCostWithout - yourCostWithByLaw,
     yearlyFeeDifference: yearlyFeeImpactWithout - yearlyFeeImpactWith,
+    yearlyTotalDifference: totalYearlyCostWith - totalYearlyCostWithout, // Negative means WITH costs more
   };
 }
 
 export function ScenarioCalculator() {
   const [selectedScenario, setSelectedScenario] = useState('flood-from-above');
   const [showMethodology, setShowMethodology] = useState(false);
+  // Estimate HO6 premium: ~$25 base + $4 per $10K coverage
+  const estimatePremium = (coverage: number) => Math.round(25 + (coverage / 10000) * 4);
+  
   const [inputs, setInputs] = useState<ScenarioInputs>({
     unitSize: 850,
     renovationValue: 25000,
     corporationDeductible: 50000,
     ownerInsuranceCoverage: 100000,
     ownerInsuranceDeductible: 1000,
+    ownerInsurancePremium: estimatePremium(100000), // Default estimate: $65/mo
     damageSeverity: 'moderate',
     numberOfUnits: 200,
     incidentsPerYear: 3,
   });
+  
+  const [premiumOverridden, setPremiumOverridden] = useState(false);
 
   const result = useMemo(() => calculate(inputs, selectedScenario), [inputs, selectedScenario]);
 
@@ -451,11 +515,19 @@ export function ScenarioCalculator() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-600">Your Condo Insurance</span>
+                    <span className="text-gray-600">Your HO6 Coverage</span>
                     <span className="font-medium text-green-600">{formatCurrency(inputs.ownerInsuranceCoverage)}</span>
                   </div>
                   <input type="range" min="0" max="200000" step="10000" value={inputs.ownerInsuranceCoverage}
-                    onChange={(e) => setInputs({ ...inputs, ownerInsuranceCoverage: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const newCoverage = Number(e.target.value);
+                      setInputs({ 
+                        ...inputs, 
+                        ownerInsuranceCoverage: newCoverage,
+                        // Auto-update premium unless user has overridden it
+                        ownerInsurancePremium: premiumOverridden ? inputs.ownerInsurancePremium : estimatePremium(newCoverage)
+                      });
+                    }}
                     className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
                   />
                   {result.withByLaw.fullyInsured ? (
@@ -465,6 +537,24 @@ export function ScenarioCalculator() {
                   ) : (
                     <p className="text-xs text-amber-600 mt-0.5">Pays {formatCurrency(result.withByLaw.insurancePays)}, you cover the rest</p>
                   )}
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-600">Your HO6 Monthly Premium</span>
+                    <span className="font-medium text-green-600">${inputs.ownerInsurancePremium}/mo</span>
+                  </div>
+                  <input type="range" min="0" max="150" step="5" value={inputs.ownerInsurancePremium}
+                    onChange={(e) => {
+                      setPremiumOverridden(true);
+                      setInputs({ ...inputs, ownerInsurancePremium: Number(e.target.value) });
+                    }}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {premiumOverridden ? 'Custom value' : `Est. $${estimatePremium(inputs.ownerInsuranceCoverage)}/mo`} 
+                    = ${(inputs.ownerInsurancePremium * 12).toLocaleString()}/yr
+                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
@@ -504,7 +594,7 @@ export function ScenarioCalculator() {
                 
                 <div className="space-y-3">
                   <div className="bg-white rounded-lg p-3 border border-red-100">
-                    <p className="text-xs text-red-600">Your Likely Cost</p>
+                    <p className="text-xs text-red-600">Your Likely Cost (this incident)</p>
                     <p className="text-2xl font-bold text-red-700">{formatCurrency(result.withoutByLaw.yourCost)}</p>
                     <p className="text-xs text-gray-500">Ambiguity pushes costs to you</p>
                   </div>
@@ -515,10 +605,20 @@ export function ScenarioCalculator() {
                     <p className="text-xs text-gray-500">If dispute escalates + legal fees</p>
                   </div>
 
-                  <div className="bg-white rounded-lg p-3 border border-red-100">
-                    <p className="text-xs text-red-600">Yearly Fee Increase (per unit)</p>
-                    <p className="text-lg font-bold text-red-800">+{formatCurrency(result.withoutByLaw.yearlyFeeImpact)}/yr</p>
-                    <p className="text-xs text-gray-500">From {inputs.incidentsPerYear} incidents + disputes</p>
+                  <div className="pt-2 border-t border-red-100 space-y-2">
+                    <p className="text-xs text-red-700 font-medium">Yearly Costs</p>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-600">HO6 Premium (underinsured)</span>
+                      <span className="text-red-700">{formatCurrency(result.withoutByLaw.yearlyPremium)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-600">Fee Increase ({inputs.incidentsPerYear} incidents)</span>
+                      <span className="text-red-700">+{formatCurrency(result.withoutByLaw.yearlyFeeImpact)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-medium pt-1 border-t border-red-100">
+                      <span className="text-red-800">Total Yearly Cost</span>
+                      <span className="text-red-800">{formatCurrency(result.withoutByLaw.totalYearlyCost)}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -532,7 +632,7 @@ export function ScenarioCalculator() {
                 
                 <div className="space-y-3">
                   <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <p className="text-xs text-green-600">Your Total Cost</p>
+                    <p className="text-xs text-green-600">Your Total Cost (this incident)</p>
                     <p className="text-2xl font-bold text-green-700">{formatCurrency(result.withByLaw.yourCost)}</p>
                     <p className="text-xs text-gray-500">Clear responsibility = no surprises</p>
                   </div>
@@ -543,10 +643,20 @@ export function ScenarioCalculator() {
                     <p className="text-xs text-gray-500">Your HO6 policy covers you</p>
                   </div>
 
-                  <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <p className="text-xs text-green-600">Yearly Fee Increase (per unit)</p>
-                    <p className="text-lg font-bold text-green-800">+{formatCurrency(result.withByLaw.yearlyFeeImpact)}/yr</p>
-                    <p className="text-xs text-gray-500">Smaller, clearer claims</p>
+                  <div className="pt-2 border-t border-green-100 space-y-2">
+                    <p className="text-xs text-green-700 font-medium">Yearly Costs</p>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-600">HO6 Premium (adequate coverage)</span>
+                      <span className="text-green-700">{formatCurrency(result.withByLaw.yearlyPremium)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-gray-600">Fee Increase ({inputs.incidentsPerYear} incidents)</span>
+                      <span className="text-green-700">+{formatCurrency(result.withByLaw.yearlyFeeImpact)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-medium pt-1 border-t border-green-100">
+                      <span className="text-green-800">Total Yearly Cost</span>
+                      <span className="text-green-800">{formatCurrency(result.withByLaw.totalYearlyCost)}</span>
+                    </div>
                   </div>
                 </div>
               </div>

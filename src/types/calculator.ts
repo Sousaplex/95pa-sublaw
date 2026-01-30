@@ -4,6 +4,7 @@ export interface ScenarioInputs {
   corporationDeductible: number;
   ownerInsuranceCoverage: number;
   ownerInsuranceDeductible: number;
+  ownerInsurancePremium: number; // Monthly HO6 premium
   damageSeverity: 'minor' | 'moderate' | 'major';
   numberOfUnits: number;
   incidentsPerYear: number;
