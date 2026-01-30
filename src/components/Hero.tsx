@@ -43,15 +43,6 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Hero Illustration */}
-        <div className="mb-8">
-          <img 
-            src="/sub-law/hero-illustration.png" 
-            alt="Condo building protected by shield illustration" 
-            className="max-w-md mx-auto w-full h-auto"
-          />
-        </div>
-
         <div className="bg-white rounded-2xl shadow-lg p-8 text-left max-w-3xl mx-auto">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
             What Is a Standard Unit By-Law?
