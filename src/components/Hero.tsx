@@ -15,28 +15,16 @@ export function Hero() {
         </h1>
         
         <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-          When a pipe bursts or a fire happens, <strong>who pays to fix what?</strong> This by-law gives your building a clear answer—so you're not stuck arguing or overpaying.
+          When a pipe bursts or a fire happens, <strong>who pays to fix what?</strong> This by-law gives your building a clear answer—so you're not left arguing or overpaying.
         </p>
 
-        {/* Before/After Comparison */}
-        <div className="grid sm:grid-cols-2 gap-4 mb-8 max-w-2xl mx-auto">
-          <div className="bg-red-50 rounded-xl p-5 border border-red-200 text-left">
-            <p className="text-sm font-semibold text-red-700 mb-2">WITHOUT the by-law</p>
-            <ul className="text-sm text-red-800 space-y-1">
-              <li>• No one agrees who pays</li>
-              <li>• Repairs get delayed</li>
-              <li>• You may cover others' upgrades</li>
-            </ul>
-          </div>
-          <div className="bg-green-50 rounded-xl p-5 border border-green-200 text-left">
-            <p className="text-sm font-semibold text-green-700 mb-2">WITH the by-law</p>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• Responsibilities are spelled out</li>
-              <li>• Repairs happen faster</li>
-              <li>• You pay only for your own upgrades</li>
-            </ul>
-          </div>
-        </div>
+        <a 
+          href="#calculator" 
+          className="inline-flex items-center gap-2 bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-700 transition-colors mb-8"
+        >
+          See how it affects you
+          <ArrowDown className="w-4 h-4" />
+        </a>
 
         {/* Hook to keep reading */}
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 max-w-2xl mx-auto flex items-start gap-3 text-left">
