@@ -5,7 +5,7 @@ const navLinks = [
   { href: '#what-is-it', label: 'What Is It?' },
   { href: '#why-it-matters', label: 'Why It Matters' },
   { href: '#insurance', label: 'Insurance' },
-  { href: '#calculator', label: 'Calculate Savings' },
+  { href: '#calculator', label: 'Calculator' },
 ];
 
 export function Navbar() {
@@ -34,9 +34,9 @@ export function Navbar() {
             ))}
             <a
               href="#calculator"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
             >
-              See Your Savings
+              Try the Calculator
             </a>
           </div>
 
@@ -66,9 +66,9 @@ export function Navbar() {
             <a
               href="#calculator"
               onClick={() => setIsOpen(false)}
-              className="block mt-2 bg-green-600 text-white px-4 py-2 rounded-lg text-center font-semibold"
+              className="block mt-2 bg-primary-600 text-white px-4 py-2 rounded-lg text-center font-semibold"
             >
-              See Your Savings
+              Try the Calculator
             </a>
           </div>
         )}

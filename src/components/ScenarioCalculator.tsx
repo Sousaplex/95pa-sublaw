@@ -492,12 +492,12 @@ export function ScenarioCalculator() {
               </div>
             </div>
 
-            {/* Savings Banner */}
+            {/* Difference Banner */}
             {result.savings > 0 && (
-              <div className="p-4 bg-gradient-to-r from-green-600 to-green-700 text-white text-center">
-                <p className="text-green-100 text-sm">The By-Law Saves You</p>
+              <div className="p-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center">
+                <p className="text-primary-100 text-sm">Estimated Difference</p>
                 <p className="text-3xl font-bold">{formatCurrency(result.savings)}</p>
-                <p className="text-green-200 text-xs mt-1">in this scenario alone</p>
+                <p className="text-primary-200 text-xs mt-1">less with the by-law in this scenario</p>
               </div>
             )}
 

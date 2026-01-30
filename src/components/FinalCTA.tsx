@@ -17,20 +17,20 @@ export function FinalCTA() {
         <div className="grid sm:grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto">
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <p className="text-white font-medium">Save Money</p>
-            <p className="text-gray-400 text-sm">$10,000 - $50,000+ in potential savings per incident</p>
-          </div>
-          
-          <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <p className="text-white font-medium">Get Clarity</p>
+            <p className="text-white font-medium">Clarity</p>
             <p className="text-gray-400 text-sm">Know exactly what you're responsible for</p>
           </div>
           
           <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-            <p className="text-white font-medium">Be Fair</p>
+            <p className="text-white font-medium">Fairness</p>
             <p className="text-gray-400 text-sm">Everyone pays for their own choices</p>
+          </div>
+          
+          <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-white font-medium">Speed</p>
+            <p className="text-gray-400 text-sm">Faster repairs without disputes</p>
           </div>
         </div>
 
@@ -76,7 +76,7 @@ export function FinalCTA() {
           href="#calculator" 
           className="inline-flex items-center gap-2 mt-8 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl font-semibold transition-colors"
         >
-          Calculate Your Potential Savings
+          Try the Calculator
           <ArrowRight className="w-5 h-5" />
         </a>
       </div>

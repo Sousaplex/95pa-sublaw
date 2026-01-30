@@ -19,7 +19,7 @@ export function InsuranceSection() {
             <ShieldCheck className="w-8 h-8 text-green-600 shrink-0" />
             <div>
               <h3 className="text-xl font-semibold text-green-800 mb-2">
-                How a Standard Unit By-Law Saves You Money on Insurance
+                How a Standard Unit By-Law Helps With Insurance
               </h3>
               <p className="text-green-700">
                 Without a Standard Unit By-Law, you're guessing how much personal insurance you need. That leads to two costly problems:

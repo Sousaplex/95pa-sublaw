@@ -34,7 +34,7 @@ export function StickyCTA() {
             href="#calculator"
             className="bg-white text-green-700 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-green-50 transition-colors whitespace-nowrap"
           >
-            See Your Savings
+            Try the Calculator
           </a>
           <button 
             onClick={() => setIsDismissed(true)}

@@ -191,9 +191,9 @@ export function WhyItMatters() {
           
           <div className="mt-6 text-center">
             <p className="text-2xl font-bold text-gray-900">
-              Potential Savings: <span className="text-green-600">$15,000 - $25,000</span>
+              Potential Difference: <span className="text-green-600">$15,000 - $25,000</span>
             </p>
-            <p className="text-gray-600 text-sm mt-1">In a single incident. And incidents happen more often than you'd think.</p>
+            <p className="text-gray-600 text-sm mt-1">The gap between clear rules and ambiguity. Try the calculator to see your situation.</p>
           </div>
         </div>
 
@@ -408,7 +408,7 @@ export function WhyItMatters() {
             No surprises.
           </p>
           <div className="flex flex-wrap justify-center gap-4 text-sm">
-            <div className="bg-green-800/50 px-4 py-2 rounded-full">Save $10,000 - $50,000+ in an incident</div>
+            <div className="bg-green-800/50 px-4 py-2 rounded-full">Clear responsibilities</div>
             <div className="bg-green-800/50 px-4 py-2 rounded-full">Stop subsidizing neighbors' upgrades</div>
             <div className="bg-green-800/50 px-4 py-2 rounded-full">Faster repairs, no disputes</div>
           </div>
