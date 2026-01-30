@@ -77,7 +77,7 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
               </div>
               <div className="font-mono">
                 <p className="text-gray-600 mb-1">// Improvement multiplier based on renovation value</p>
-                <p><span className="text-blue-600">improvementMultiplier</span> = {inputs.renovationValue > 50000 ? '1.5 (renos > $50K)' : inputs.renovationValue > 25000 ? '1.25 (renos > $25K)' : '1.0 (renos ≤ $25K)'}</p>
+                <p><span className="text-blue-600">improvementMultiplier</span> = {inputs.renovationValue >= 50000 ? '1.5 (renos ≥ $50K)' : inputs.renovationValue >= 25000 ? '1.25 (renos ≥ $25K)' : '1.0 (renos < $25K)'}</p>
               </div>
               <div className="font-mono">
                 <p><span className="text-blue-600">standardUnitDamage</span> = estimatedRepairCost × standardUnitRatio</p>
@@ -97,8 +97,10 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
               <p><span className="text-green-600">corpCovers</span> = max(0, standardUnitDamage - corporationDeductible)</p>
               <p><span className="text-green-600">deductibleChargeback</span> = min(standardUnitDamage, corporationDeductible)</p>
               <p><span className="text-green-600">yourResponsibility</span> = deductibleChargeback + improvementDamage</p>
-              <p><span className="text-green-600">insuranceCovers</span> = min(ownerCoverage - ownerDeductible, yourResponsibility - ownerDeductible)</p>
-              <p><span className="text-green-600">yourCost</span> = max(0, yourResponsibility - insuranceCovers) + ownerDeductible</p>
+              <p className="text-gray-600">// Your HO6 insurance covers amount above your deductible</p>
+              <p><span className="text-green-600">claimableAmount</span> = max(0, yourResponsibility - ownerDeductible)</p>
+              <p><span className="text-green-600">insurancePays</span> = min(claimableAmount, ownerCoverage - ownerDeductible)</p>
+              <p><span className="text-green-600">yourCost</span> = yourResponsibility - insurancePays</p>
             </div>
           </div>
 
@@ -211,7 +213,8 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   // Calculate damage
   const baseCost = scenario.baseCostPerSqFt[inputs.damageSeverity];
   const estimatedRepairCost = Math.round(baseCost * Math.sqrt(inputs.unitSize) * 10);
-  const improvementMultiplier = inputs.renovationValue > 50000 ? 1.5 : inputs.renovationValue > 25000 ? 1.25 : 1;
+  // Higher renovation value = more expensive finishes = higher repair costs
+  const improvementMultiplier = inputs.renovationValue >= 50000 ? 1.5 : inputs.renovationValue >= 25000 ? 1.25 : 1;
   const standardUnitDamage = Math.round(estimatedRepairCost * scenario.standardUnitRatio);
   const improvementDamage = Math.round((estimatedRepairCost * (1 - scenario.standardUnitRatio)) * improvementMultiplier);
   const totalDamage = standardUnitDamage + improvementDamage;
@@ -220,8 +223,11 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   const corpCovers = Math.max(0, standardUnitDamage - inputs.corporationDeductible);
   const deductibleChargeback = Math.min(standardUnitDamage, inputs.corporationDeductible);
   const yourResponsibility = deductibleChargeback + improvementDamage;
-  const insuranceCovers = Math.min(inputs.ownerInsuranceCoverage - inputs.ownerInsuranceDeductible, yourResponsibility - inputs.ownerInsuranceDeductible);
-  const yourCostWithByLaw = Math.max(0, yourResponsibility - insuranceCovers) + (insuranceCovers > 0 ? inputs.ownerInsuranceDeductible : 0);
+  
+  // Insurance calculation: you pay deductible first, insurance covers the rest up to policy limit
+  const claimableAmount = Math.max(0, yourResponsibility - inputs.ownerInsuranceDeductible);
+  const insurancePays = Math.min(claimableAmount, Math.max(0, inputs.ownerInsuranceCoverage - inputs.ownerInsuranceDeductible));
+  const yourCostWithByLaw = yourResponsibility - insurancePays;
   
   // Fee impact WITH by-law: corp claim increases premiums, spread across all units
   // Estimate: insurance premium increase = 10% of claim, spread over 3 years
