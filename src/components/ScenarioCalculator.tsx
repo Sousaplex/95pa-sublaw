@@ -293,7 +293,6 @@ export function ScenarioCalculator() {
     ownerInsuranceCoverage: 100000,
     ownerInsuranceDeductible: 1000,
     damageSeverity: 'moderate',
-    monthlyCondoFees: 600,
     numberOfUnits: 200,
   });
 
@@ -446,23 +445,15 @@ export function ScenarioCalculator() {
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">Building Info (for fee calc)</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <div className="text-xs text-gray-600 mb-1">Monthly Fees</div>
-                      <input type="number" value={inputs.monthlyCondoFees}
-                        onChange={(e) => setInputs({ ...inputs, monthlyCondoFees: Number(e.target.value) })}
-                        className="w-full px-2 py-1 text-sm border border-gray-200 rounded"
-                      />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-600 mb-1"># of Units</div>
-                      <input type="number" value={inputs.numberOfUnits}
-                        onChange={(e) => setInputs({ ...inputs, numberOfUnits: Number(e.target.value) })}
-                        className="w-full px-2 py-1 text-sm border border-gray-200 rounded"
-                      />
-                    </div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-600"># of Units in Building</span>
+                    <span className="font-medium">{inputs.numberOfUnits}</span>
                   </div>
+                  <input type="range" min="20" max="500" step="10" value={inputs.numberOfUnits}
+                    onChange={(e) => setInputs({ ...inputs, numberOfUnits: Number(e.target.value) })}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-0.5">Premium increases are spread across all units</p>
                 </div>
               </div>
 

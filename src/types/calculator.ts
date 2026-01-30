@@ -5,7 +5,6 @@ export interface ScenarioInputs {
   ownerInsuranceCoverage: number;
   ownerInsuranceDeductible: number;
   damageSeverity: 'minor' | 'moderate' | 'major';
-  monthlyCondoFees: number;
   numberOfUnits: number;
 }
 
