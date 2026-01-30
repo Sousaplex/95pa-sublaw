@@ -191,18 +191,17 @@ interface CalculationResult {
     corpCovers: number;
     yourResponsibility: number;
     insurancePays: number;
-    feeImpact: number;
-    monthlyIncrease: number;
     deductibleExceedsDamage: boolean;
     fullyInsured: boolean;
+    yearlyFeeImpact: number;
   };
   withoutByLaw: {
     yourCost: number;
     worstCase: number;
-    feeImpact: number;
-    monthlyIncrease: number;
+    yearlyFeeImpact: number;
   };
   savings: number;
+  yearlyFeeDifference: number;
 }
 
 function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResult {
@@ -212,9 +211,10 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
       totalDamage: 0,
       standardUnitDamage: 0,
       improvementDamage: 0,
-      withByLaw: { yourCost: 0, corpCovers: 0, yourResponsibility: 0, insurancePays: 0, feeImpact: 0, monthlyIncrease: 0, deductibleExceedsDamage: false, fullyInsured: false },
-      withoutByLaw: { yourCost: 0, worstCase: 0, feeImpact: 0, monthlyIncrease: 0 },
+      withByLaw: { yourCost: 0, corpCovers: 0, yourResponsibility: 0, insurancePays: 0, deductibleExceedsDamage: false, fullyInsured: false, yearlyFeeImpact: 0 },
+      withoutByLaw: { yourCost: 0, worstCase: 0, yearlyFeeImpact: 0 },
       savings: 0,
+      yearlyFeeDifference: 0,
     };
   }
 
@@ -237,23 +237,27 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   const insurancePays = Math.min(claimableAmount, Math.max(0, inputs.ownerInsuranceCoverage - inputs.ownerInsuranceDeductible));
   const yourCostWithByLaw = yourResponsibility - insurancePays;
   
-  // Fee impact WITH by-law: corp claim increases premiums, spread across all units
-  // Estimate: insurance premium increase = 10% of claim, spread over 3 years
-  const premiumIncrease = corpCovers * 0.10;
-  const annualFeeImpactWith = premiumIncrease / 3 / inputs.numberOfUnits;
-  const monthlyIncreaseWith = Math.round(annualFeeImpactWith / 12);
-
   // WITHOUT BY-LAW
   // Ambiguity means 50% of standard unit pushed to you, plus corp might cover some improvements
   const ambiguityPush = standardUnitDamage * 0.5;
   const yourCostWithout = improvementDamage + ambiguityPush;
   const worstCase = totalDamage + 10000; // Plus potential legal fees
-  
-  // Fee impact WITHOUT: corp may cover more (including some improvements), higher claims
-  const corpCoversWithout = standardUnitDamage * 0.5 + improvementDamage * 0.3; // Ambiguity means corp covers some improvements
-  const premiumIncreaseWithout = corpCoversWithout * 0.15; // Higher rate due to disputed claims
-  const annualFeeImpactWithout = premiumIncreaseWithout / 3 / inputs.numberOfUnits;
-  const monthlyIncreaseWithout = Math.round(annualFeeImpactWithout / 12);
+
+  // YEARLY FEE IMPACT (based on incidents per year across building)
+  // WITH by-law: corp claims are smaller and clearer
+  // Corporation only claims when damage > deductible (less common with clear definitions)
+  const corpClaimPerIncidentWith = corpCovers; // Only standard unit above deductible
+  const yearlyCorpClaimsWithByLaw = corpClaimPerIncidentWith * inputs.incidentsPerYear;
+  // Premium increase estimate: 15% of claims added to premium, spread across units
+  const yearlyFeeImpactWith = Math.round((yearlyCorpClaimsWithByLaw * 0.15) / inputs.numberOfUnits);
+
+  // WITHOUT by-law: corp claims are larger due to ambiguity (might cover improvements too)
+  // Also more disputes lead to higher claims and legal costs
+  const corpClaimPerIncidentWithout = standardUnitDamage * 0.7 + improvementDamage * 0.3; // Ambiguity means corp covers more
+  const disputeCostPerIncident = totalDamage > 5000 ? 2000 : 500; // Legal/admin costs from disputes
+  const yearlyCorpClaimsWithoutByLaw = (corpClaimPerIncidentWithout + disputeCostPerIncident) * inputs.incidentsPerYear;
+  // Higher premium increase rate for disputed/unclear claims
+  const yearlyFeeImpactWithout = Math.round((yearlyCorpClaimsWithoutByLaw * 0.20) / inputs.numberOfUnits);
 
   // Flags for UI feedback
   const deductibleExceedsDamage = inputs.corporationDeductible >= standardUnitDamage;
@@ -268,18 +272,17 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
       corpCovers,
       yourResponsibility,
       insurancePays,
-      feeImpact: annualFeeImpactWith,
-      monthlyIncrease: monthlyIncreaseWith,
       deductibleExceedsDamage,
       fullyInsured,
+      yearlyFeeImpact: yearlyFeeImpactWith,
     },
     withoutByLaw: {
       yourCost: yourCostWithout,
       worstCase,
-      feeImpact: annualFeeImpactWithout,
-      monthlyIncrease: monthlyIncreaseWithout,
+      yearlyFeeImpact: yearlyFeeImpactWithout,
     },
     savings: yourCostWithout - yourCostWithByLaw,
+    yearlyFeeDifference: yearlyFeeImpactWithout - yearlyFeeImpactWith,
   };
 }
 
@@ -294,6 +297,7 @@ export function ScenarioCalculator() {
     ownerInsuranceDeductible: 1000,
     damageSeverity: 'moderate',
     numberOfUnits: 200,
+    incidentsPerYear: 3,
   });
 
   const result = useMemo(() => calculate(inputs, selectedScenario), [inputs, selectedScenario]);
@@ -445,16 +449,31 @@ export function ScenarioCalculator() {
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-600"># of Units in Building</span>
-                    <span className="font-medium">{inputs.numberOfUnits}</span>
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Building-Wide Impact</p>
+                  <div className="space-y-2">
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-600"># of Units</span>
+                        <span className="font-medium">{inputs.numberOfUnits}</span>
+                      </div>
+                      <input type="range" min="50" max="400" step="10" value={inputs.numberOfUnits}
+                        onChange={(e) => setInputs({ ...inputs, numberOfUnits: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-600">Incidents/Year (building-wide)</span>
+                        <span className="font-medium">{inputs.incidentsPerYear}</span>
+                      </div>
+                      <input type="range" min="1" max="10" step="1" value={inputs.incidentsPerYear}
+                        onChange={(e) => setInputs({ ...inputs, incidentsPerYear: Number(e.target.value) })}
+                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500"
+                      />
+                    </div>
                   </div>
-                  <input type="range" min="20" max="500" step="10" value={inputs.numberOfUnits}
-                    onChange={(e) => setInputs({ ...inputs, numberOfUnits: Number(e.target.value) })}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gray-500"
-                  />
-                  <p className="text-xs text-gray-400 mt-0.5">Premium increases are spread across all units</p>
                 </div>
+
               </div>
 
               {/* WITHOUT By-Law */}
@@ -466,24 +485,19 @@ export function ScenarioCalculator() {
                 
                 <div className="space-y-3">
                   <div className="bg-white rounded-lg p-3 border border-red-100">
-                    <p className="text-xs text-red-600">Your Direct Cost</p>
+                    <p className="text-xs text-red-600">Your Cost (this incident)</p>
                     <p className="text-2xl font-bold text-red-700">{formatCurrency(result.withoutByLaw.yourCost)}</p>
+                    <p className="text-xs text-gray-500">Ambiguity pushes costs to you</p>
                   </div>
                   
                   <div className="bg-white rounded-lg p-3 border border-red-100">
-                    <p className="text-xs text-red-600">Worst Case</p>
-                    <p className="text-xl font-bold text-red-800">{formatCurrency(result.withoutByLaw.worstCase)}</p>
-                    <p className="text-xs text-gray-500">Including potential legal fees</p>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-3 border border-red-100">
-                    <p className="text-xs text-red-600">Fee Impact (Everyone Pays)</p>
-                    <p className="text-lg font-bold text-red-700">+{formatCurrency(result.withoutByLaw.monthlyIncrease)}/mo</p>
-                    <p className="text-xs text-gray-500">Higher claims = higher premiums for all</p>
+                    <p className="text-xs text-red-600">Yearly Fee Increase (per unit)</p>
+                    <p className="text-xl font-bold text-red-800">+{formatCurrency(result.withoutByLaw.yearlyFeeImpact)}/yr</p>
+                    <p className="text-xs text-gray-500">From {inputs.incidentsPerYear} incidents + disputes</p>
                   </div>
 
                   <div className="text-xs text-red-700 p-2 bg-red-100 rounded">
-                    Plus: disputes, delays, ambiguity
+                    Higher claims + dispute costs = higher fees
                   </div>
                 </div>
               </div>
@@ -497,35 +511,43 @@ export function ScenarioCalculator() {
                 
                 <div className="space-y-3">
                   <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <p className="text-xs text-green-600">Your Total Cost</p>
+                    <p className="text-xs text-green-600">Your Cost (this incident)</p>
                     <p className="text-2xl font-bold text-green-700">{formatCurrency(result.withByLaw.yourCost)}</p>
+                    <p className="text-xs text-gray-500">Clear responsibility = no surprises</p>
                   </div>
                   
                   <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <p className="text-xs text-green-600">Corporation Covers</p>
-                    <p className="text-xl font-bold text-green-800">{formatCurrency(result.withByLaw.corpCovers)}</p>
-                    <p className="text-xs text-gray-500">Clearly defined standard unit</p>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-3 border border-green-100">
-                    <p className="text-xs text-green-600">Fee Impact (Everyone Pays)</p>
-                    <p className="text-lg font-bold text-green-700">+{formatCurrency(result.withByLaw.monthlyIncrease)}/mo</p>
-                    <p className="text-xs text-gray-500">Lower, clearer claims</p>
+                    <p className="text-xs text-green-600">Yearly Fee Increase (per unit)</p>
+                    <p className="text-xl font-bold text-green-800">+{formatCurrency(result.withByLaw.yearlyFeeImpact)}/yr</p>
+                    <p className="text-xs text-gray-500">Smaller, clearer claims</p>
                   </div>
 
                   <div className="text-xs text-green-700 p-2 bg-green-100 rounded">
-                    Plus: fast repairs, no disputes, clarity
+                    Lower claims = lower fee increases
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Difference Banner */}
-            {result.savings > 0 && (
-              <div className="p-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white text-center">
-                <p className="text-primary-100 text-sm">Estimated Difference</p>
-                <p className="text-3xl font-bold">{formatCurrency(result.savings)}</p>
-                <p className="text-primary-200 text-xs mt-1">less with the by-law in this scenario</p>
+            {(result.savings > 0 || result.yearlyFeeDifference > 0) && (
+              <div className="p-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white">
+                <div className="flex justify-center gap-8 flex-wrap">
+                  {result.savings > 0 && (
+                    <div className="text-center">
+                      <p className="text-primary-200 text-xs">Per Incident Difference</p>
+                      <p className="text-2xl font-bold">{formatCurrency(result.savings)}</p>
+                      <p className="text-primary-200 text-xs">less with the by-law</p>
+                    </div>
+                  )}
+                  {result.yearlyFeeDifference > 0 && (
+                    <div className="text-center">
+                      <p className="text-primary-200 text-xs">Yearly Fee Difference</p>
+                      <p className="text-2xl font-bold">{formatCurrency(result.yearlyFeeDifference)}/yr</p>
+                      <p className="text-primary-200 text-xs">lower fees with the by-law</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

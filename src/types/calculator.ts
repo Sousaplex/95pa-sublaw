@@ -6,6 +6,7 @@ export interface ScenarioInputs {
   ownerInsuranceDeductible: number;
   damageSeverity: 'minor' | 'moderate' | 'major';
   numberOfUnits: number;
+  incidentsPerYear: number;
 }
 
 export interface ScenarioResult {
