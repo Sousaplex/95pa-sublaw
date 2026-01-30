@@ -156,21 +156,21 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
           <div>
             <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">7</span>
-              HO6 Premium Calculation
+              HO6 Premium & Coverage
             </h3>
             <div className="bg-green-50 rounded-lg p-3 space-y-3 text-xs font-mono">
-              <p className="text-gray-600 font-sans">// Estimated monthly premium based on coverage level</p>
+              <p className="text-gray-600 font-sans">// Premium determines estimated coverage (can be overridden)</p>
               
               <div className="border-l-2 border-gray-400 pl-2">
-                <p className="text-gray-600 font-sans font-medium mb-1">Premium Estimate:</p>
-                <p><span className="text-gray-700">estimatedPremium</span> = $25 base + ($4 × coverage ÷ $10,000)</p>
-                <p className="text-gray-500">// Example: $100K coverage → $25 + $40 = $65/mo</p>
+                <p className="text-gray-600 font-sans font-medium mb-1">Coverage Estimate from Premium:</p>
+                <p><span className="text-gray-700">estimatedCoverage</span> = (premium - $25) × $10,000 ÷ $4</p>
+                <p className="text-gray-500">// Example: $65/mo → ($65 - $25) × 2,500 = $100K coverage</p>
               </div>
               
               <div className="border-l-2 border-green-400 pl-2">
                 <p className="text-gray-600 font-sans font-medium mb-1">WITH By-Law:</p>
                 <p><span className="text-green-600">yearlyPremium</span> = ownerInsurancePremium × 12</p>
-                <p className="text-gray-500">// Owner pays for adequate coverage</p>
+                <p className="text-gray-500">// Owner knows what coverage they need</p>
               </div>
               
               <div className="border-l-2 border-red-400 pl-2">
@@ -366,8 +366,10 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
 export function ScenarioCalculator() {
   const [selectedScenario, setSelectedScenario] = useState('flood-from-above');
   const [showMethodology, setShowMethodology] = useState(false);
-  // Estimate HO6 premium: ~$25 base + $4 per $10K coverage
-  const estimatePremium = (coverage: number) => Math.round(25 + (coverage / 10000) * 4);
+  
+  // Estimate coverage from premium: reverse of $25 base + $4 per $10K
+  // premium = 25 + (coverage / 10000) * 4  →  coverage = (premium - 25) * 10000 / 4
+  const estimateCoverage = (premium: number) => Math.max(0, Math.round((premium - 25) * 10000 / 4 / 10000) * 10000);
   
   const [inputs, setInputs] = useState<ScenarioInputs>({
     unitSize: 850,
@@ -375,13 +377,13 @@ export function ScenarioCalculator() {
     corporationDeductible: 50000,
     ownerInsuranceCoverage: 100000,
     ownerInsuranceDeductible: 1000,
-    ownerInsurancePremium: estimatePremium(100000), // Default estimate: $65/mo
+    ownerInsurancePremium: 65, // Default: $65/mo → ~$100K coverage
     damageSeverity: 'moderate',
     numberOfUnits: 200,
     incidentsPerYear: 3,
   });
   
-  const [premiumOverridden, setPremiumOverridden] = useState(false);
+  const [coverageOverridden, setCoverageOverridden] = useState(false);
 
   const result = useMemo(() => calculate(inputs, selectedScenario), [inputs, selectedScenario]);
 
@@ -515,21 +517,43 @@ export function ScenarioCalculator() {
 
                 <div>
                   <div className="flex justify-between text-xs mb-1">
+                    <span className="text-gray-600">Your HO6 Monthly Premium</span>
+                    <span className="font-medium text-green-600">${inputs.ownerInsurancePremium}/mo</span>
+                  </div>
+                  <input type="range" min="20" max="150" step="5" value={inputs.ownerInsurancePremium}
+                    onChange={(e) => {
+                      const newPremium = Number(e.target.value);
+                      setInputs({ 
+                        ...inputs, 
+                        ownerInsurancePremium: newPremium,
+                        // Auto-update coverage unless user has overridden it
+                        ownerInsuranceCoverage: coverageOverridden ? inputs.ownerInsuranceCoverage : estimateCoverage(newPremium)
+                      });
+                    }}
+                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    = ${(inputs.ownerInsurancePremium * 12).toLocaleString()}/yr
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
                     <span className="text-gray-600">Your HO6 Coverage</span>
                     <span className="font-medium text-green-600">{formatCurrency(inputs.ownerInsuranceCoverage)}</span>
                   </div>
                   <input type="range" min="0" max="200000" step="10000" value={inputs.ownerInsuranceCoverage}
                     onChange={(e) => {
-                      const newCoverage = Number(e.target.value);
-                      setInputs({ 
-                        ...inputs, 
-                        ownerInsuranceCoverage: newCoverage,
-                        // Auto-update premium unless user has overridden it
-                        ownerInsurancePremium: premiumOverridden ? inputs.ownerInsurancePremium : estimatePremium(newCoverage)
-                      });
+                      setCoverageOverridden(true);
+                      setInputs({ ...inputs, ownerInsuranceCoverage: Number(e.target.value) });
                     }}
                     className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
                   />
+                  {coverageOverridden ? (
+                    <p className="text-xs text-gray-400 mt-0.5">Custom coverage</p>
+                  ) : (
+                    <p className="text-xs text-gray-400 mt-0.5">Est. from ${inputs.ownerInsurancePremium}/mo premium</p>
+                  )}
                   {result.withByLaw.fullyInsured ? (
                     <p className="text-xs text-green-600 mt-0.5">Fully covers your {formatCurrency(result.withByLaw.yourResponsibility)} responsibility</p>
                   ) : inputs.ownerInsuranceCoverage === 0 ? (
@@ -537,24 +561,6 @@ export function ScenarioCalculator() {
                   ) : (
                     <p className="text-xs text-amber-600 mt-0.5">Pays {formatCurrency(result.withByLaw.insurancePays)}, you cover the rest</p>
                   )}
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-gray-600">Your HO6 Monthly Premium</span>
-                    <span className="font-medium text-green-600">${inputs.ownerInsurancePremium}/mo</span>
-                  </div>
-                  <input type="range" min="0" max="150" step="5" value={inputs.ownerInsurancePremium}
-                    onChange={(e) => {
-                      setPremiumOverridden(true);
-                      setInputs({ ...inputs, ownerInsurancePremium: Number(e.target.value) });
-                    }}
-                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
-                  />
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {premiumOverridden ? 'Custom value' : `Est. $${estimatePremium(inputs.ownerInsuranceCoverage)}/mo`} 
-                    = ${(inputs.ownerInsurancePremium * 12).toLocaleString()}/yr
-                  </p>
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
