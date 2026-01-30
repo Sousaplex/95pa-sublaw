@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sub-law/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}
