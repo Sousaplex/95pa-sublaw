@@ -1,8 +1,23 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/sub-law/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/sub-law/(.*)",
-      "destination": "/$1"
+      "source": "/sub-law",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sub-law/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/sub-law/:path*",
+      "destination": "/:path*"
     }
   ]
 }
