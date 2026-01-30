@@ -184,11 +184,17 @@ function formatCurrency(amount: number): string {
 
 interface CalculationResult {
   totalDamage: number;
+  standardUnitDamage: number;
+  improvementDamage: number;
   withByLaw: {
     yourCost: number;
     corpCovers: number;
+    yourResponsibility: number;
+    insurancePays: number;
     feeImpact: number;
     monthlyIncrease: number;
+    deductibleExceedsDamage: boolean;
+    fullyInsured: boolean;
   };
   withoutByLaw: {
     yourCost: number;
@@ -204,7 +210,9 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   if (!scenario) {
     return {
       totalDamage: 0,
-      withByLaw: { yourCost: 0, corpCovers: 0, feeImpact: 0, monthlyIncrease: 0 },
+      standardUnitDamage: 0,
+      improvementDamage: 0,
+      withByLaw: { yourCost: 0, corpCovers: 0, yourResponsibility: 0, insurancePays: 0, feeImpact: 0, monthlyIncrease: 0, deductibleExceedsDamage: false, fullyInsured: false },
       withoutByLaw: { yourCost: 0, worstCase: 0, feeImpact: 0, monthlyIncrease: 0 },
       savings: 0,
     };
@@ -247,13 +255,23 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
   const annualFeeImpactWithout = premiumIncreaseWithout / 3 / inputs.numberOfUnits;
   const monthlyIncreaseWithout = Math.round(annualFeeImpactWithout / 12);
 
+  // Flags for UI feedback
+  const deductibleExceedsDamage = inputs.corporationDeductible >= standardUnitDamage;
+  const fullyInsured = insurancePays >= claimableAmount && claimableAmount > 0;
+
   return {
     totalDamage,
+    standardUnitDamage,
+    improvementDamage,
     withByLaw: {
       yourCost: yourCostWithByLaw,
       corpCovers,
+      yourResponsibility,
+      insurancePays,
       feeImpact: annualFeeImpactWith,
       monthlyIncrease: monthlyIncreaseWith,
+      deductibleExceedsDamage,
+      fullyInsured,
     },
     withoutByLaw: {
       yourCost: yourCostWithout,
@@ -353,6 +371,15 @@ export function ScenarioCalculator() {
                   </div>
                 );
               })()}
+              
+              {/* Damage Summary */}
+              <div className="mt-3 p-2 bg-gray-100 rounded-lg flex items-center justify-center gap-4 text-xs">
+                <span className="text-gray-600">Estimated Total Damage:</span>
+                <span className="font-bold text-gray-900">{formatCurrency(result.totalDamage)}</span>
+                <span className="text-gray-400">|</span>
+                <span className="text-gray-500">Standard: {formatCurrency(result.standardUnitDamage)}</span>
+                <span className="text-gray-500">Improvements: {formatCurrency(result.improvementDamage)}</span>
+              </div>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-0 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
@@ -393,7 +420,11 @@ export function ScenarioCalculator() {
                     onChange={(e) => setInputs({ ...inputs, corporationDeductible: Number(e.target.value) })}
                     className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
                   />
-                  <p className="text-xs text-gray-400 mt-0.5">Building insurance deductible (check your status certificate)</p>
+                  {result.withByLaw.deductibleExceedsDamage ? (
+                    <p className="text-xs text-amber-600 mt-0.5">Exceeds damage—try "Major" severity or lower deductible</p>
+                  ) : (
+                    <p className="text-xs text-gray-400 mt-0.5">Corp covers {formatCurrency(result.withByLaw.corpCovers)} above this</p>
+                  )}
                 </div>
 
                 <div>
@@ -405,7 +436,13 @@ export function ScenarioCalculator() {
                     onChange={(e) => setInputs({ ...inputs, ownerInsuranceCoverage: Number(e.target.value) })}
                     className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-500"
                   />
-                  <p className="text-xs text-gray-400 mt-0.5">Your personal unit insurance (HO6 policy)</p>
+                  {result.withByLaw.fullyInsured ? (
+                    <p className="text-xs text-green-600 mt-0.5">Fully covers your {formatCurrency(result.withByLaw.yourResponsibility)} responsibility</p>
+                  ) : inputs.ownerInsuranceCoverage === 0 ? (
+                    <p className="text-xs text-red-500 mt-0.5">No coverage—you pay everything out of pocket</p>
+                  ) : (
+                    <p className="text-xs text-amber-600 mt-0.5">Pays {formatCurrency(result.withByLaw.insurancePays)}, you cover the rest</p>
+                  )}
                 </div>
 
                 <div className="pt-2 border-t border-gray-100">
