@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Droplets, Flame, Hammer, CloudRain, Calculator, AlertTriangle, CheckCircle, Info, X } from 'lucide-react';
 import { damageScenarios } from '../data/scenarios';
 import type { ScenarioInputs } from '../types/calculator';
-import { LegalPreamble } from './LegalPreamble';
 
 const scenarioIcons: Record<string, React.ReactNode> = {
   'droplets': <Droplets className="w-4 h-4" />,
@@ -261,7 +260,6 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
 }
 
 export function ScenarioCalculator() {
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState(damageScenarios[0].id);
   const [showMethodology, setShowMethodology] = useState(false);
   const [inputs, setInputs] = useState<ScenarioInputs>({
@@ -293,10 +291,7 @@ export function ScenarioCalculator() {
           </p>
         </div>
 
-        <LegalPreamble onAccept={() => setDisclaimerAccepted(true)} accepted={disclaimerAccepted} />
-
-        {disclaimerAccepted && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             {/* Scenario Selection */}
             <div className="p-4 bg-gray-50 border-b border-gray-200">
               <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -515,7 +510,12 @@ export function ScenarioCalculator() {
               </button>
             </div>
           </div>
-        )}
+
+        {/* Simple disclaimer */}
+        <p className="text-xs text-gray-400 text-center mt-4 max-w-2xl mx-auto">
+          This calculator is for illustration only—actual costs depend on your condo's specific by-laws, declaration, and insurance policies. 
+          Consult your property manager or a professional for advice specific to your situation.
+        </p>
         
         <MethodologyModal 
           isOpen={showMethodology} 
