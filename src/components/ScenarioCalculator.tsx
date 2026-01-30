@@ -46,6 +46,7 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
               <div className="flex justify-between"><span className="text-gray-600">ownerInsuranceCoverage</span><span>${inputs.ownerInsuranceCoverage.toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">ownerInsuranceDeductible</span><span>${inputs.ownerInsuranceDeductible.toLocaleString()}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">numberOfUnits</span><span>{inputs.numberOfUnits}</span></div>
+              <div className="flex justify-between"><span className="text-gray-600">incidentsPerYear</span><span>{inputs.incidentsPerYear}</span></div>
               <div className="flex justify-between"><span className="text-gray-600">damageSeverity</span><span>{inputs.damageSeverity}</span></div>
             </div>
           </div>
@@ -118,17 +119,35 @@ function MethodologyModal({ isOpen, onClose, inputs, scenarioId }: {
             </div>
           </div>
 
-          {/* Fee Impact */}
+          {/* Yearly Fee Impact */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">6</span>
-              Fee Impact Calculation
+              Yearly Fee Impact Calculation
             </h3>
-            <div className="bg-amber-50 rounded-lg p-3 space-y-2 text-xs font-mono">
-              <p className="text-gray-600">// Corp claims increase building insurance premiums, spread across all units</p>
-              <p><span className="text-amber-600">premiumIncrease</span> = corpCovers × 10% (WITH) or 15% (WITHOUT)</p>
-              <p><span className="text-amber-600">annualFeeImpact</span> = premiumIncrease ÷ 3 years ÷ numberOfUnits</p>
-              <p><span className="text-amber-600">monthlyIncrease</span> = annualFeeImpact ÷ 12</p>
+            <div className="bg-amber-50 rounded-lg p-3 space-y-3 text-xs font-mono">
+              <p className="text-gray-600 font-sans">// Based on {inputs.incidentsPerYear} building-wide incidents per year</p>
+              
+              <div className="border-l-2 border-green-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">WITH By-Law:</p>
+                <p><span className="text-green-600">corpClaimPerIncident</span> = corpCovers (standard unit above deductible)</p>
+                <p><span className="text-green-600">yearlyCorpClaims</span> = corpClaimPerIncident × incidentsPerYear</p>
+                <p><span className="text-green-600">yearlyFeeImpact</span> = (yearlyCorpClaims × 15%) ÷ numberOfUnits</p>
+              </div>
+              
+              <div className="border-l-2 border-red-400 pl-2">
+                <p className="text-gray-600 font-sans font-medium mb-1">WITHOUT By-Law:</p>
+                <p><span className="text-red-600">corpClaimPerIncident</span> = standardUnitDamage × 70% + improvementDamage × 30%</p>
+                <p className="text-gray-500">// Ambiguity causes corp to cover some improvements</p>
+                <p><span className="text-red-600">disputeCostPerIncident</span> = $500-$2,000 (legal/admin from unclear rules)</p>
+                <p><span className="text-red-600">yearlyCorpClaims</span> = (corpClaimPerIncident + disputeCost) × incidentsPerYear</p>
+                <p><span className="text-red-600">yearlyFeeImpact</span> = (yearlyCorpClaims × 20%) ÷ numberOfUnits</p>
+                <p className="text-gray-500">// Higher rate due to disputed/unclear claims</p>
+              </div>
+              
+              <div className="border-l-2 border-primary-400 pl-2">
+                <p><span className="text-primary-600">yearlyFeeDifference</span> = yearlyFeeImpactWithout - yearlyFeeImpactWith</p>
+              </div>
             </div>
           </div>
 
