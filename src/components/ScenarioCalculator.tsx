@@ -260,7 +260,7 @@ function calculate(inputs: ScenarioInputs, scenarioId: string): CalculationResul
 }
 
 export function ScenarioCalculator() {
-  const [selectedScenario, setSelectedScenario] = useState(damageScenarios[0].id);
+  const [selectedScenario, setSelectedScenario] = useState('flood-from-above');
   const [showMethodology, setShowMethodology] = useState(false);
   const [inputs, setInputs] = useState<ScenarioInputs>({
     unitSize: 850,

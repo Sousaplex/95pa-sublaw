@@ -2,6 +2,21 @@ import type { DamageScenario } from '../types/calculator';
 
 export const damageScenarios: DamageScenario[] = [
   {
+    id: 'flood-from-above',
+    name: 'Neighbour Floods You',
+    headline: 'Someone ELSE caused it — but YOU suffer',
+    description: 'You come home to find water dripping from your ceiling. Your upstairs neighbour\'s washing machine overflowed — or maybe their bathtub, or a burst pipe. Your ceiling is sagging, your walls are soaked, and your new flooring is buckling. You didn\'t cause this. But guess what? You still might have to pay to fix YOUR unit.',
+    icon: 'cloud-rain',
+    baseCostPerSqFt: {
+      minor: 4,
+      moderate: 10,
+      major: 25,
+    },
+    standardUnitRatio: 0.55,
+    commonScenario: 'Upstairs neighbour\'s appliance leak, overflowing tub, burst pipe, or aquarium failure.',
+    whoResponsible: 'neighbour',
+  },
+  {
     id: 'water-burst-pipe',
     name: 'Your Pipe Bursts',
     headline: 'You caused it — a pipe in YOUR unit bursts',
@@ -45,21 +60,6 @@ export const damageScenarios: DamageScenario[] = [
     standardUnitRatio: 0.2,
     commonScenario: 'Contractor punctures pipes, damages HVAC, structural errors, or causes water damage during bathroom/kitchen renos.',
     whoResponsible: 'you',
-  },
-  {
-    id: 'flood-from-above',
-    name: 'Neighbour Floods You',
-    headline: 'Someone ELSE caused it — but YOU suffer',
-    description: 'You come home to find water dripping from your ceiling. Your upstairs neighbour\'s washing machine overflowed — or maybe their bathtub, or a burst pipe. Your ceiling is sagging, your walls are soaked, and your new flooring is buckling. You didn\'t cause this. But guess what? You still might have to pay to fix YOUR unit.',
-    icon: 'cloud-rain',
-    baseCostPerSqFt: {
-      minor: 4,
-      moderate: 10,
-      major: 25,
-    },
-    standardUnitRatio: 0.55,
-    commonScenario: 'Upstairs neighbour\'s appliance leak, overflowing tub, burst pipe, or aquarium failure.',
-    whoResponsible: 'neighbour',
   },
 ];
 
