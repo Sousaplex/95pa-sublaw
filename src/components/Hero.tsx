@@ -15,22 +15,22 @@ export function Hero() {
         </h1>
         
         <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
-          If your condo doesn't have one, you could be on the hook for <strong>tens of thousands of dollars</strong> when something goes wrong—even if it's not your fault.
+          Without one, there's no clear answer to <strong>who pays for what</strong> when something goes wrong—leading to disputes, delays, and you potentially paying more than your fair share.
         </p>
 
         {/* Quick Impact Numbers */}
         <div className="grid sm:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-red-600">$50,000+</p>
-            <p className="text-sm text-gray-600">Potential cost without the by-law</p>
+            <p className="text-3xl font-bold text-red-600">Unclear</p>
+            <p className="text-sm text-gray-600">Who pays without the by-law?</p>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-green-600">$5,000</p>
-            <p className="text-sm text-gray-600">Typical cost with the by-law</p>
+            <p className="text-3xl font-bold text-green-600">Defined</p>
+            <p className="text-sm text-gray-600">Clear rules with the by-law</p>
           </div>
           <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <p className="text-3xl font-bold text-primary-600">$45,000</p>
-            <p className="text-sm text-gray-600">Your potential savings</p>
+            <p className="text-3xl font-bold text-primary-600">Fair</p>
+            <p className="text-sm text-gray-600">You only pay for your upgrades</p>
           </div>
         </div>
 
