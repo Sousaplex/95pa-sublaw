@@ -109,6 +109,7 @@ export function Footer() {
         {/* Copyright */}
         <div className="text-center text-sm text-gray-500">
           <p>&copy; {currentYear} Standard Unit By-Law Guide. Educational resource for Ontario condo owners.</p>
+          <p className="mt-2 text-xs text-gray-600">Made with love in an uber on my phone.</p>
         </div>
       </div>
     </footer>
